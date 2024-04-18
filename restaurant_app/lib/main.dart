@@ -1,8 +1,12 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
+import 'package:restaurant_app/show_items/show_items_page.dart';
+import 'package:restaurant_app/upload_meal/upload_meal_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: FirebaseOptions(apiKey: "AIzaSyDjXN9fYyW6bIEcbNu-_DjeUVhJTmG0xOQ", appId: "1:344288739919:web:a978749a28a1217ee6e03a", messagingSenderId: "344288739919", projectId: "cafeteria-support"));
   runApp(const MyApp());
 }
 
@@ -19,132 +23,70 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+        colorSchemeSeed: Colors.lightGreenAccent,
+        useMaterial3: true
       ),
-      home: UploadImagePage(),
+      home: MyHomePage(),
     );
   }
 }
 
-class UploadImagePage extends StatefulWidget {
+
+class MyHomePage extends StatefulWidget {
   @override
-  _UploadImagePageState createState() => _UploadImagePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _UploadImagePageState extends State<UploadImagePage> {
-  final picker = ImagePicker();
-  late XFile _image;
+class _MyHomePageState extends State<MyHomePage> {
+  int _selectedIndex = 0;
 
-
-  String _name = ''; // Variable to store the name of the food
-  double _price = 0.0; // Variable to store the price of the food
-  String _category = 'Category 1'; // Variable to store the selected category
-
-  // List of categories (you can replace it with your own list)
-  List<String> _categories = [
-    'Category 1',
-    'Category 2',
-    'Category 3',
-    'Category 4',
+  final List<Widget> _pages = [
+    UploadMealPage(),
+    ProductsPage(restaurantId: "restaurant1",),
+    UploadMealPage()
   ];
 
-  // Function to handle category selection
-  void _onCategoryChanged(String? value) {
-  setState(() {
-    _category = value ?? _categories[0]; // Assign a default value if value is null
-  });
-}
-
-  Future getImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      if (pickedFile != null) {
-        _image = pickedFile;
-      } else {
-        print('No image selected.');
-      }
-    });
-  }
-
-  Future uploadImage() async {
-    print('Upload image functionality should be implemented here.');
+  Widget _getPage(int index) {
+    return _pages[index];
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Upload Meal'),
+      body: Row(
+        children: [
+          
+          NavigationRail(
+            backgroundColor: Theme.of(context).hoverColor,
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: (int index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            labelType: NavigationRailLabelType.all,
+            destinations: const [
+              NavigationRailDestination(
+                icon: Icon(Icons.upload),
+                label: Text('Upload Item'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.food_bank),
+                label: Text('Items'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.list),
+                label: Text('Orders'),
+              ),
+            ],
+          ),
+          Expanded(
+            child: Center(
+              child: _getPage(_selectedIndex),
+            ),
+          ),
+        ],
       ),
-      body: Center(
-        child:
-        SizedBox(
-          width: 300,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            //Image.file(File(_image.path)),
-
-            SizedBox(height: 20), // Add spacing between image and other information
-                      TextFormField(
-                        decoration: InputDecoration(labelText: 'Name'),
-                        onChanged: (value) {
-                          setState(() {
-                            _name = value;
-                          });
-                        },
-                      ),
-                      TextFormField(
-                        decoration: InputDecoration(labelText: 'Price'),
-                        keyboardType: TextInputType.number,
-                        onChanged: (value) {
-                          setState(() {
-                            _price = double.parse(value);
-                          });
-                        },
-                      ),
-                      DropdownButton( 
-                
-              // Initial Value 
-              value: _category, 
-                
-              // Down Arrow Icon 
-              icon: const Icon(Icons.keyboard_arrow_down),     
-                
-              // Array list of items 
-              items: _categories.map((String items) { 
-                return DropdownMenuItem( 
-                  value: items, 
-                  child: Text(items), 
-                ); 
-              }).toList(), 
-              onChanged: (String? newValue) {  
-                setState(() { 
-                  _category = newValue!; 
-                }); 
-              }, 
-            ),
-
-            ElevatedButton(
-              onPressed: getImage,
-              child: Text('Select Image'),
-            ),
-            ElevatedButton(
-              onPressed: uploadImage, //Upload meal function....
-              child: Text('Upload meal'),
-            ),
-          ],
-        ),
-      ),
-    ));
+    );
   }
 }
