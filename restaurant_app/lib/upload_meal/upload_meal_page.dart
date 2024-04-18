@@ -14,11 +14,11 @@ class _UploadMealPageState extends State<UploadMealPage> {
   XFile? _image;
 
   final _service = CloudFirestoreService(FirebaseFirestore.instance);
-  
 
-  String _name = ''; // Variable to store the name of the food
-  double _price = 0.0; // Variable to store the price of the food
-  String _category = 'Drink'; // Variable to store the selected category
+  String _name = '';
+  double _price = 0.0;
+  String _category = 'Drink';
+  String _tag = 'baklava';
 
   // List of categories (you can replace it with your own list)
   List<String> _categories = [
@@ -28,11 +28,19 @@ class _UploadMealPageState extends State<UploadMealPage> {
     'Side dish',
   ];
 
+  List<String> _tags = ['baklava', 'apple_pie'];
+
   // Function to handle category selection
   void _onCategoryChanged(String? value) {
     setState(() {
       _category =
           value ?? _categories[0]; // Assign a default value if value is null
+    });
+  }
+
+  void _onTagChanged(String? value) {
+    setState(() {
+      _tag = value ?? _tags[0]; // Assign a default value if value is null
     });
   }
 
@@ -47,13 +55,11 @@ class _UploadMealPageState extends State<UploadMealPage> {
     });
   }
 
-  Future uploadImage(String name, double price, String tag) async {
-  String productId = await _service.addProduct({
-    'name': name,
-    'price': price,
-    'tag': tag,
-  });
-}
+  Future uploadImage(
+      String name, double price, String tag, String category) async {
+    String productId = await _service.addProduct(
+        {'name': name, 'price': price, 'tag': tag, 'category': category});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,25 +92,67 @@ class _UploadMealPageState extends State<UploadMealPage> {
                   },
                 ),
                 SizedBox(height: 20),
-                DropdownButton(
-                  // Initial Value
-                  value: _category,
-
-                  // Down Arrow Icon
-                  icon: const Icon(Icons.keyboard_arrow_down),
-
-                  // Array list of items
-                  items: _categories.map((String items) {
-                    return DropdownMenuItem(
-                      value: items,
-                      child: Text(items),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _category = newValue!;
-                    });
-                  },
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Category', // Title text
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    DropdownButton<String>(
+                      value: _category,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: _categories.map((String items) {
+                        return DropdownMenuItem(
+                          value: items,
+                          child: Text(items),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _category = newValue!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Tag', // Title text
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    DropdownButton<String>(
+                      value: _tag,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: _tags.map((String items) {
+                        return DropdownMenuItem(
+                          value: items,
+                          child: Text(items),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _tag = newValue!;
+                        });
+                      },
+                    ),
+                  ],
                 ),
                 SizedBox(height: 20),
                 Container(
@@ -120,7 +168,8 @@ class _UploadMealPageState extends State<UploadMealPage> {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () => uploadImage(_name, _price, _category), //Upload meal function....
+                  onPressed: () => uploadImage(_name, _price, _tag,
+                      _category), //Upload meal function....
                   child: Text('Upload meal'),
                 ),
               ],
