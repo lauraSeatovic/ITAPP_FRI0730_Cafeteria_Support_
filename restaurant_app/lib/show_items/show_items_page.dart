@@ -28,6 +28,78 @@ class _ProductsPageState extends State<ProductsPage> {
     });
   }
 
+  Future<void> _deleteProduct(String productId) async {
+    await _firestoreService.deleteProduct(widget.restaurantId, productId);
+    await _loadProducts();
+  }
+
+
+  Future<void> _showEditDialog(Map<String, dynamic> product) async {
+  TextEditingController nameController = TextEditingController(text: product['name']);
+  TextEditingController priceController = TextEditingController(text: product['price'].toString());
+  TextEditingController tagController = TextEditingController(text: product['tag']);
+  TextEditingController categoryController = TextEditingController(text: product['category']);
+
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Edit Product'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: priceController,
+                decoration: InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: tagController,
+                decoration: InputDecoration(labelText: 'Tag'),
+              ),
+              TextField(
+                controller: categoryController,
+                decoration: InputDecoration(labelText: 'Category'),
+              ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text('Save'),
+            onPressed: () async {
+              // Update the product in Firestore
+              await _firestoreService.updateProduct(
+                widget.restaurantId,
+                product['id'],
+                {
+                  'name': nameController.text,
+                  'price': double.parse(priceController.text),
+                  'tag': tagController.text,
+                  'category': categoryController.text,
+                },
+              );
+              // Refresh the product list
+              await _loadProducts();
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
   @override
 Widget build(BuildContext context) {
   return Scaffold(
@@ -44,6 +116,7 @@ Widget build(BuildContext context) {
                   DataColumn(label: Text('Name')),
                   DataColumn(label: Text('Price')),
                   DataColumn(label: Text('Tag')),
+                  DataColumn(label: Text('Category')),
                   DataColumn(label: Text('Actions')), // Add column for actions
                 ],
                 rows: _products.map((product) {
@@ -51,19 +124,20 @@ Widget build(BuildContext context) {
                     DataCell(Text(product['name'].toString())),
                     DataCell(Text(product['price'].toString())),
                     DataCell(Text(product['tag'].toString())),
+                    DataCell(Text(product['category'].toString())),
                     DataCell(Row(
                       children: [
                         IconButton(
                           icon: Icon(Icons.edit),
-                          onPressed: () {
-                            // Implement edit action here
-                          },
+                          onPressed: () async {
+                              await _showEditDialog(product);
+                            },
                         ),
                         IconButton(
                           icon: Icon(Icons.delete),
-                          onPressed: () {
-                            // Implement delete action here
-                          },
+                          onPressed: () async {
+                              await _deleteProduct(product['id']);
+                            },
                         ),
                       ],
                     )),

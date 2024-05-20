@@ -20,9 +20,32 @@ class CloudFirestoreService {
 
     List<Map<String, dynamic>> products = [];
     querySnapshot.docs.forEach((doc) {
-      products.add(doc.data() as Map<String, dynamic>);
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      data['id'] = doc.id; // Add the document ID to the data map
+      products.add(data);
     });
+
+    print("Products list: $products"); // Print the entire list of products
 
     return products;
   }
+
+  Future<void> deleteProduct(String restaurantId, String productId) async {
+    await db
+        .collection('restaurant')
+        .doc(restaurantId)
+        .collection('products')
+        .doc(productId)
+        .delete();
+  }
+
+  Future<void> updateProduct(String restaurantId, String productId, Map<String, dynamic> productData) async {
+    await db
+        .collection('restaurant')
+        .doc(restaurantId)
+        .collection('products')
+        .doc(productId)
+        .update(productData);
+  }
+
 }
