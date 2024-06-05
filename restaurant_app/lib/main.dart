@@ -6,7 +6,7 @@ import 'package:restaurant_app/upload_meal/upload_meal_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: FirebaseOptions(apiKey: "AIzaSyDjXN9fYyW6bIEcbNu-_DjeUVhJTmG0xOQ", appId: "1:344288739919:web:a978749a28a1217ee6e03a", messagingSenderId: "344288739919", projectId: "cafeteria-support"));
+  await Firebase.initializeApp(options: FirebaseOptions(apiKey: "AIzaSyDjXN9fYyW6bIEcbNu-_DjeUVhJTmG0xOQ", appId: "1:344288739919:web:a978749a28a1217ee6e03a", messagingSenderId: "344288739919", projectId: "cafeteria-support", storageBucket: "cafeteria-support.appspot.com"));
   runApp(const MyApp());
 }
 

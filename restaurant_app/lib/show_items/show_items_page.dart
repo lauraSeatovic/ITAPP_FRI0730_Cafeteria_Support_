@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../firebase_methods.dart'; // Import your CloudFirestoreService class
+import 'package:firebase_storage/firebase_storage.dart';
 
 class ProductsPage extends StatefulWidget {
   final String restaurantId;
@@ -12,7 +13,7 @@ class ProductsPage extends StatefulWidget {
 }
 
 class _ProductsPageState extends State<ProductsPage> {
-  final CloudFirestoreService _firestoreService = CloudFirestoreService(FirebaseFirestore.instance);
+  final CloudFirestoreService _firestoreService = CloudFirestoreService(FirebaseFirestore.instance, FirebaseStorage.instance);
   late List<Map<String, dynamic>> _products = [];
 
   @override
@@ -112,19 +113,30 @@ Widget build(BuildContext context) {
             padding: EdgeInsets.all(16),
             children: [
               DataTable(
-                columns: [
-                  DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Price')),
-                  DataColumn(label: Text('Tag')),
-                  DataColumn(label: Text('Category')),
-                  DataColumn(label: Text('Actions')), // Add column for actions
-                ],
-                rows: _products.map((product) {
-                  return DataRow(cells: [
-                    DataCell(Text(product['name'].toString())),
-                    DataCell(Text(product['price'].toString())),
-                    DataCell(Text(product['tag'].toString())),
-                    DataCell(Text(product['category'].toString())),
+  columns: [
+    DataColumn(label: Text('Name')),
+    DataColumn(label: Text('Price')),
+    DataColumn(label: Text('Tag')),
+    DataColumn(label: Text('Category')),
+    DataColumn(label: Text('Image')), // Add column for image
+    DataColumn(label: Text('Actions')),
+  ],
+  rows: _products.map((product) {
+    return DataRow(cells: [
+      DataCell(Text(product['name'].toString())),
+      DataCell(Text(product['price'].toString())),
+      DataCell(Text(product['tag'].toString())),
+      DataCell(Text(product['category'].toString())),
+      DataCell(
+        product['image_url'] != null
+            ? Image.network(
+                product['image_url'],
+                width: 50,
+                height: 50,
+                fit: BoxFit.cover,
+              )
+            : SizedBox(), // Display an empty container if image URL is not available
+      ),
                     DataCell(Row(
                       children: [
                         IconButton(

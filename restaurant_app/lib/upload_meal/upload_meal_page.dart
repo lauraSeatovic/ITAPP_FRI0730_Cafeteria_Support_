@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../firebase_methods.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class UploadMealPage extends StatefulWidget {
   @override
@@ -13,7 +14,7 @@ class _UploadMealPageState extends State<UploadMealPage> {
   final picker = ImagePicker();
   XFile? _image;
 
-  final _service = CloudFirestoreService(FirebaseFirestore.instance);
+  final _service = CloudFirestoreService(FirebaseFirestore.instance, FirebaseStorage.instance);
 
   String _name = '';
   double _price = 0.0;
@@ -55,11 +56,35 @@ class _UploadMealPageState extends State<UploadMealPage> {
     });
   }
 
-  Future uploadImage(
-      String name, double price, String tag, String category) async {
-    String productId = await _service.addProduct(
-        {'name': name, 'price': price, 'tag': tag, 'category': category});
+  Future uploadImage(String name, double price, String tag, String category) async {
+  if (_image == null) {
+    print('No image selected');
+    return;
   }
+
+  try {
+    // Upload image to Firebase Storage
+    final storageRef = FirebaseStorage.instance.ref().child('meal_images/${_image!.name}');
+    
+    // For web platform, upload image data directly
+    final bytes = await _image!.readAsBytes();
+    await storageRef.putData(bytes);
+    final imageUrl = await storageRef.getDownloadURL();
+
+    // Add product to Firestore
+    String productId = await _service.addProduct({
+      'name': name,
+      'price': price,
+      'tag': tag,
+      'category': category,
+      'image_url': imageUrl, // Add image URL to Firestore document
+    });
+
+    print('Product added with ID: $productId');
+  } catch (e) {
+    print('Failed to upload image and save product: $e');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
